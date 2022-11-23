@@ -2,6 +2,7 @@
 
 require_relative "minitestify/version"
 require "syntax_tree"
+require "dry/inflector"
 
 # Starting off with a spike to convert a simple rspec example
 
@@ -11,51 +12,33 @@ module Minitestify
 
   class Spike
     def initialize
-      src = SyntaxTree.read("lib/calculator_spec.rb")
-      prog = SyntaxTree.parse(src)
-      @result_nodes = []
+      source = SyntaxTree.read("lib/calculator_spec.rb")
+      program = SyntaxTree.parse(source)
 
-      prog.statements.body.each do |node|
-        case node
-        in SyntaxTree::Command[
-             message: SyntaxTree::Ident[value: "describe"],
-             arguments: SyntaxTree::Args[
-               parts: [
-                 SyntaxTree::VarRef[value: SyntaxTree::Const[value: value]]
-               ]
-             ]
-           ]
-          handle_describe node, value
-        else
-          handle_node node
-        end
+      visitor = SyntaxTree::Visitor::MutationVisitor.new
+      inflector = Dry::Inflector.new
 
-        maxwidth = SyntaxTree::DEFAULT_PRINT_WIDTH
-        options = SyntaxTree::Formatter::Options.new
-        formatter =
-          SyntaxTree::Formatter.new("", [], maxwidth, options: options)
-        new_prog =
-          prog.copy statements: prog.statements.copy(body: @result_nodes)
+      # describe -> class
+      visitor.mutate(
+        "Command[ message: Ident[value: \"describe\"] ]"
+      ) do |node|
+        node => SyntaxTree::Command[
+          message: SyntaxTree::Ident[value: "describe"],
+          arguments: SyntaxTree::Args[
+            parts: [
+              SyntaxTree::VarRef[
+                value: SyntaxTree::Const[value: value]
+              ]
+            ]
+          ]
+        ]
 
-        new_prog.format(formatter)
-
-        formatter.flush
-        print formatter.output.join
-      end
-    end
-
-    def handle_node(node)
-      @result_nodes << node
-    end
-
-    def handle_describe(node, value)
-      class_node =
         SyntaxTree::ClassDeclaration.new(
           constant:
             SyntaxTree::ConstRef.new(
               constant:
                 SyntaxTree::Const.new(
-                  value: "#{value}Test",
+                  value: "#{inflector.camelize_upper(value)}Test",
                   location: node.location
                 ),
               location: node.location
@@ -78,8 +61,32 @@ module Minitestify
           bodystmt: node.child_nodes.last.bodystmt,
           location: node.location
         )
+      end
 
-      @result_nodes << class_node
+      # it -> def
+      visitor.mutate("Command[message: Ident[value: \"it\"]]") do |node|
+        node => SyntaxTree::Command[
+          message: SyntaxTree::Ident[value: "it"],
+          arguments: SyntaxTree::Args[
+            parts: [
+              SyntaxTree::StringLiteral[
+                parts: [SyntaxTree::TStringContent[value: value]]
+              ]
+            ]
+          ]
+        ]
+
+        SyntaxTree::DefNode.new(
+          target: nil,
+          operator: nil,
+          name: SyntaxTree::Ident.new(value: "test_#{value.gsub(" ", "_")}", location: node.location),
+          params: SyntaxTree::Params,
+          bodystmt: node.child_nodes.last.bodystmt,
+          location: node.location
+        )
+      end
+
+      print SyntaxTree::Formatter.format(source, program.accept(visitor))
     end
   end
 end
