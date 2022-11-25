@@ -1,8 +1,8 @@
 # Minitestify
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/minitestify`. To experiment with that code, run `bin/console` for an interactive prompt.
+minitestify is a tool to convert Rspec specs to equivalent minitest tests by parsing and transforming the code using the [syntax_tree](https://github.com/ruby-syntax-tree/syntax_tree) gem.
 
-TODO: Delete this and the text above, and describe your gem
+It's early days and this work is still experimental.  Right now there's a script to convert `describe` and `it` statements to Minitest class and test method definitions.
 
 ## Installation
 
