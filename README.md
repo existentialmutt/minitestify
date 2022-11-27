@@ -2,7 +2,12 @@
 
 minitestify is a tool to convert Rspec specs to equivalent minitest tests by parsing and transforming the code using the [syntax_tree](https://github.com/ruby-syntax-tree/syntax_tree) gem.
 
-It's early days and this work is still experimental.  Right now there's a script to convert `describe` and `it` statements to Minitest class and test method definitions.
+It's early days and this work is still experimental.  Here's what it can do now
+
+### Capabilities
+- describe -> class
+- it -> def test_*
+- expect(actual).to eq(expected) -> assert_equal(expected, actual)
 
 ## Installation
 

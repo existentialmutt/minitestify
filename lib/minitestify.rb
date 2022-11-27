@@ -19,17 +19,11 @@ module Minitestify
       inflector = Dry::Inflector.new
 
       # describe -> class
-      visitor.mutate(
-        "Command[ message: Ident[value: \"describe\"] ]"
-      ) do |node|
+      visitor.mutate("Command[ message: Ident[value: \"describe\"] ]") do |node|
         node => SyntaxTree::Command[
           message: SyntaxTree::Ident[value: "describe"],
           arguments: SyntaxTree::Args[
-            parts: [
-              SyntaxTree::VarRef[
-                value: SyntaxTree::Const[value: value]
-              ]
-            ]
+            parts: [SyntaxTree::VarRef[value: SyntaxTree::Const[value: value]]]
           ]
         ]
 
@@ -79,10 +73,75 @@ module Minitestify
         SyntaxTree::DefNode.new(
           target: nil,
           operator: nil,
-          name: SyntaxTree::Ident.new(value: "test_#{value.gsub(" ", "_")}", location: node.location),
+          name:
+            SyntaxTree::Ident.new(
+              value: "test_#{value.gsub(" ", "_")}",
+              location: node.location
+            ),
           params: SyntaxTree::Params,
           bodystmt: node.child_nodes.last.bodystmt,
           location: node.location
+        )
+      end
+
+      expect_eq_search =
+        'CommandCall[
+          receiver: CallNode[
+            message: Ident[value: "expect"]
+          ],
+          operator: Period[value: "."],
+          message: Ident[value: "to"],
+          arguments: Args[
+            parts: [ CallNode[
+              message: Ident[value: "eq"]
+              ]
+            ]
+          ]
+        ]'
+      visitor.mutate(expect_eq_search) do |node|
+        node => SyntaxTree::CommandCall[
+          receiver: SyntaxTree::CallNode[
+            receiver: nil,
+            operator: nil,
+            message: SyntaxTree::Ident[value: "expect"],
+            arguments: SyntaxTree::ArgParen[
+              arguments: SyntaxTree::Args[parts: [actual_expr]]
+            ]
+          ],
+          operator: SyntaxTree::Period[value: "."],
+          message: SyntaxTree::Ident[value: "to"],
+          arguments: SyntaxTree::Args[
+            parts: [
+              SyntaxTree::CallNode[
+                receiver: nil,
+                operator: nil,
+                message: SyntaxTree::Ident[value: "eq"],
+                arguments: SyntaxTree::ArgParen[
+                  arguments: SyntaxTree::Args[parts: [expected_expr]]
+                ]
+              ]
+            ]
+          ]
+        ]
+
+        SyntaxTree::CallNode.new(
+          message:
+            SyntaxTree::Ident.new(
+              value: "assert_equal",
+              location: node.location
+            ),
+          arguments:
+            SyntaxTree::ArgParen.new(
+              arguments:
+                SyntaxTree::Args.new(
+                  parts: [expected_expr, actual_expr],
+                  location: node.location
+                ),
+              location: node.location
+            ),
+          location: node.location,
+          receiver: nil,
+          operator: nil
         )
       end
 
