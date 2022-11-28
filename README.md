@@ -21,7 +21,9 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ## Usage
 
-TODO: Write usage instructions here
+```
+minitestify print FILES             # Convert one or more specs to minitest and print to standard out
+```
 
 ## Development
 
