@@ -2,7 +2,6 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-require "dry/cli"
 require "minitestify/cli"
 
-Dry::CLI.new(Minitestify::CLI::Commands).call
+Minitestify::CLI.run
