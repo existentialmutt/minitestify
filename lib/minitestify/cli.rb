@@ -8,6 +8,7 @@ require "optparse"
 module Minitestify::CLI
   module_function def run
     options = {}
+    save = false
     OptionParser
       .new do |parser|
         parser.banner = "Usage: minitestify [options] <spec_files>"
@@ -21,14 +22,26 @@ module Minitestify::CLI
           puts(parser)
           exit
         end
+
+        parser.on("-r", "--rails", "Use more railsy syntax") do
+          options[:rails] = true
+        end
+
+        parser.on("-s", "--save", "Replace spec with test in path & file name. Write to new file") do
+          save = true
+        end
       end
       .parse!
 
     ARGV.each do |file|
-      spec = Minitestify::Spec.new(file: file)
-      puts("# #{spec.to_test_filepath}")
-      puts(spec.to_test_code)
-      puts
+      spec = Minitestify::Spec.new(file: file, **options)
+      if save
+        puts("Writing to #{spec.to_test_filepath}")
+        File.write(spec.to_test_filepath, spec.to_test_code)
+      else
+        puts(spec.to_test_code)
+      end
     end
+    puts
   end
 end
