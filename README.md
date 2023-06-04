@@ -11,6 +11,7 @@ It's early days and this work is still experimental.  Here's what it can do now
 - expect(actual).to eq(expected) -> assert_equal(expected, actual)
 - expect(actual).to be_falsey -> refute(actual)
 - expect(actual).to be_truthy -> assert(actual)
+- expect(actual).to be_empty -> assert_empty(actual)
 
 ## Installation
 

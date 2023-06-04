@@ -8,6 +8,7 @@ require "minitestify/mutations/it"
 require "minitestify/mutations/eq"
 require "minitestify/mutations/be_truthy"
 require "minitestify/mutations/be_falsey"
+require "minitestify/mutations/be_empty"
 
 module Minitestify
   class Spec
@@ -48,6 +49,7 @@ module Minitestify
       Mutations::Eq.new(**args).add_mutation!(visitor)
       Mutations::BeTruthy.new(**args).add_mutation!(visitor)
       Mutations::BeFalsey.new(**args).add_mutation!(visitor)
+      Mutations::BeEmpty.new(**args).add_mutation!(visitor)
 
       SyntaxTree::Formatter.format(@source, program.accept(visitor))
     end
